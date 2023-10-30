@@ -5,7 +5,14 @@ const clearButton = document.getElementById("clear");
 const itemFilter = document.getElementById("filter");
 const items = itemList.querySelectorAll("li");
 
-const addItem = e => {
+const displayItems = () => {
+  const itemsFromStorage = getItemsFromStorage();
+
+  itemsFromStorage.forEach((item) =>  addItemToDOM(item));
+  checkUi();
+}
+
+const onAddItemSubmit = e => {
   e.preventDefault();
 
   const newItem = itemInput.value;
@@ -16,18 +23,26 @@ const addItem = e => {
     return;
   }
 
+  // Create new item DOM element
+  addItemToDOM(newItem);
+
+  // Add item to localStorage
+  addItemToStorage(newItem);
+
+  checkUi();
+
+  itemInput.value = '';
+}
+
+const addItemToDOM = (item) => {
   const li = document.createElement('li');
-  li.appendChild(document.createTextNode(newItem));
+  li.appendChild(document.createTextNode(item));
 
   const button = createButton('remove-item btn-link text-red');
   li.appendChild(button);
 
   // Add li to the dom
   itemList.appendChild(li);
-
-  checkUi();
-
-  itemInput.value = '';
 }
 
 const createButton = (classes) => {
@@ -42,6 +57,28 @@ const createIcon = (classes) => {
   const icon = document.createElement('i');
   icon.className = classes;
   return icon;
+}
+
+const addItemToStorage = (item) => {
+  let itemsFromStorage = getItemsFromStorage();
+
+  // Add new items to the array
+  itemsFromStorage.push(item);
+
+  // Convert to JSON string and store in localStorage
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage));
+}
+
+const getItemsFromStorage = () => {
+  let itemsFromStorage;
+
+  if (localStorage.getItem('items') === null) {
+    itemsFromStorage = [];
+  } else {
+    itemsFromStorage = JSON.parse(localStorage.getItem('items'));
+  }
+
+  return itemsFromStorage;
 }
 
 const removeItem = (e) => {
@@ -92,10 +129,16 @@ const checkUi = () => {
   console.log('checking');
 };
 
-//Event listeners
-itemForm.addEventListener('submit', addItem);
-itemList.addEventListener('click', removeItem);
-clearButton.addEventListener('click', clearItems);
-itemFilter.addEventListener('input', filterItems);
+// Initialize application
+const init = () => {
+  //Event listeners
+  itemForm.addEventListener('submit', onAddItemSubmit);
+  itemList.addEventListener('click', removeItem);
+  clearButton.addEventListener('click', clearItems);
+  itemFilter.addEventListener('input', filterItems);
+  document.addEventListener('DOMContentLoaded', displayItems);
 
-checkUi();
+  checkUi();
+}
+
+init();
